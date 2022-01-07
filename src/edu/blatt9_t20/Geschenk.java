@@ -1,7 +1,5 @@
 package edu.blatt9_t20;
 
-import com.company.Bearbeitungsschritt;
-
 public class Geschenk {
     Bearbeitungsschritt current_step;
 

@@ -1,5 +1,7 @@
 package edu.blatt9_t20;
 
+import org.jetbrains.annotations.NotNull;
+
 public class Elf implements Runnable {
 
     Fabrik meine_fabrik;
@@ -8,7 +10,14 @@ public class Elf implements Runnable {
         this.meine_fabrik = fabrik;
     }
 
-    public void arbeit() {
+    private void verarbeite_geschenk(@NotNull Geschenk geschenk) throws InterruptedException {
+        int verarbeitungs_zeit_in_sec = geschenk.current_step.get_bearbeitungs_zeit_in_sec();
+        Thread.sleep(100L * verarbeitungs_zeit_in_sec);
+        geschenk.next_step();
+    }
+
+    @Override
+    public void run() {
         Geschenk arbeit_geschenk = meine_fabrik.get_arbeit();
         do {
             try {
@@ -21,16 +30,5 @@ public class Elf implements Runnable {
                 e.printStackTrace();
             }
         } while (arbeit_geschenk != null);
-    }
-
-    private void verarbeite_geschenk(Geschenk geschenk) throws InterruptedException {
-        int verarbeitungsZeit_inSec = geschenk.current_step.getBearbeitsZeit_inSec();
-        Thread.sleep(1000L * verarbeitungsZeit_inSec);
-        geschenk.next_step();
-    }
-
-    @Override
-    public void run() {
-        System.out.println("Running Thread");
     }
 }
