@@ -9,18 +9,35 @@ public class Simulation {
 
     public Simulation() {}
 
-    public void start(int anzahl_geschenke, int anzahl_elfen) {
+    public void start(long anzahl_geschenke, long anzahl_elfen) {
+        /*
+        Main Entrypoint.
+        Creates the Factory acting as the primary Queue,
+        as well as the Program Threads, and starts them.
+        */
         this.fabrik = new Fabrik(anzahl_geschenke);
+
+        // Create Threads
         this.init_elfen(anzahl_elfen);
-
-        //Starte die Elfen Threads
-
-        System.out.println("Arbeit erledigt");
+        // Start every thread of List
+        System.out.println("Starting " + String.valueOf(anzahl_elfen) + " Threads");
+        this.start_elfen();
     }
 
-    private void init_elfen(int anzahl_elfen) {
+    private void init_elfen(long anzahl_elfen) {
+        /* Creates the specified number of 'Elf' threads */
         for (int i = 0; i < anzahl_elfen; i++) {
-            arbeiter.add(new Elf(this.fabrik));
+            arbeiter.add(
+                    new Elf(this.fabrik)
+            );
+        }
+    }
+
+    public void start_elfen() {
+        /* Start all Threads in the 'arbeiter' List */
+        for (Elf elf : this.arbeiter) {
+            Thread thread = new Thread(elf);
+            thread.start();
         }
     }
 
