@@ -1,7 +1,10 @@
 package edu.blatt9_t20;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Fabrik {
 
@@ -12,7 +15,9 @@ public class Fabrik {
     ConcurrentLinkedQueue<Geschenk> im_versandtlager_queue = new ConcurrentLinkedQueue<Geschenk>();
     ArrayList<Geschenk> abgefertigt_list = new ArrayList<Geschenk>();
 
-    long in_bearbeitung = 0;
+    // Using an AtomicInteger ensures that reading and writing this value
+    // can be done in a thread-safe manner
+    private final AtomicInteger in_bearbeitung = new AtomicInteger(0);
     long anzahl_geschenke;
 
     public Fabrik(long anzahl_geschenke) {
@@ -26,8 +31,8 @@ public class Fabrik {
         }
     }
 
-    public Geschenk get_arbeit() {
-        in_bearbeitung += 1;
+    public synchronized Geschenk get_arbeit() {
+        in_bearbeitung.incrementAndGet();
 
         ArrayList<String> arr = new ArrayList<String>();
         if (im_lager_queue.size() > 0) {
@@ -48,6 +53,11 @@ public class Fabrik {
 
         Object[] available_cards = arr.toArray();
         java.util.Random random = new java.util.Random();
+        if (available_cards.length <= 0) {
+            // Decrement work-value and return null to signal that thread has finished
+            in_bearbeitung.decrementAndGet();
+            return null;
+        }
         int random_computer_card = random.nextInt(available_cards.length);
         String next_work = (String) available_cards[random_computer_card];
 
@@ -61,8 +71,8 @@ public class Fabrik {
         };
     }
 
-    public void abstellen(Geschenk geschenk) {
-        this.printLagerstand();
+    public synchronized void abstellen(@NotNull Geschenk geschenk) {
+        this.print_lagerstand();
 
         switch (geschenk.current_step) {
             case ImLager -> this.im_lager_queue.add(geschenk);
@@ -75,13 +85,13 @@ public class Fabrik {
             }
         }
 
-        in_bearbeitung -= 1;
+        in_bearbeitung.decrementAndGet();
     }
 
 
-    public void printLagerstand() {
+    public void print_lagerstand() {
         System.out.println("###############################################");
-        System.out.println("# In Bearbeitung:  " + in_bearbeitung);
+        System.out.println("# In Bearbeitung:  " + in_bearbeitung.get());
         System.out.println("# Lager:           " + im_lager_queue.size());
         System.out.println("# Produktpruefung: " + produktpruefung_queue.size());
         System.out.println("# Einpacken:       " + einpacken_queue.size());
